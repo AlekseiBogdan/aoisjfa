@@ -1,0 +1,39 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/form",
+      "methods": ["GET"],
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/getIcons",
+      "methods": ["GET"],
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/updateDB",
+      "methods": ["POST"],
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/deleteFromDB",
+      "methods": ["POST"],
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/css/(.*)",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/api/index.js"
+    }
+  ]
+}

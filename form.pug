@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Update Icons</title>
+<meta charset="utf-8" />
+link(rel="stylesheet", href="/base.css")
+</head>
+<body>
+div.wrapper
+    form(onsubmit="return onSubmit(event)" id="iconsForm")
+        div#iconGroups
+            div.icon-group
+                input(type='text', placeholder='Icon category' name="category" required)
+                input(type='text', placeholder='Icon SVG code' name="svg" required)
+                button.remove-btn(type="button" onclick="removeIconGroup(this)") ×
+        button.add-btn(type="button" onclick="addIconGroup()") + Add another icon
+        div.deleteIcons
+            input#deletion(type='checkbox' name="deletion" onchange="handleCheckbox(event)")
+            label(for='deletion') I want to delete these icons from DB
+        div#formFooter
+            button#formSubmit(type="submit") Update Icons
+            button#formDelete(type="button" onclick="return onDelete(event)" disabled="true") Delete Icons
+            button#formReset(type='reset') Reset
+script.
+  document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('iconsForm').reset();
+    document.getElementById("formDelete").disabled = true;
+    const iconGroups = document.getElementById('iconGroups');
+    while (iconGroups.children.length > 1) {
+      iconGroups.removeChild(iconGroups.lastChild);
+    }
+  });
+
+  function handleCheckbox(e) {
+    const {checked} = e.target;
+    document.getElementById("formDelete").disabled = !checked;
+    return false;
+  }
+
+  function addIconGroup() {
+    const iconGroups = document.getElementById('iconGroups');
+    const newGroup = document.createElement('div');
+    newGroup.className = 'icon-group';
+    newGroup.innerHTML = `
+            <input type='text' placeholder='Icon category' name='category' required>
+            <input type='text' placeholder='Icon SVG code' name='svg' required>
+            <button class="remove-btn" type="button" onclick="removeIconGroup(this)">×</button>
+        `;
+    iconGroups.appendChild(newGroup);
+  }
+
+  function removeIconGroup(button) {
+    const group = button.parentElement;
+    if (document.querySelectorAll('.icon-group').length > 1) {
+      group.remove();
+    } else {
+      alert('You need at least one icon group!');
+    }
+  }
+
+  function onSubmit(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const iconsData = [];
+
+    const categories = formData.getAll('category');
+    const svgs = formData.getAll('svg');
+
+    for (let i = 0; i < categories.length; i++) {
+      iconsData.push({
+        category: categories[i],
+        asset: svgs[i],
+        createdAt: new Date().toISOString()
+      });
+    }
+    console.log('Icons data:', iconsData);
+    fetch('/updateDB', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({icons: iconsData})
+    })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Success:', data);
+        document.getElementById('iconsForm').reset();
+        const iconGroups = document.getElementById('iconGroups');
+        document.getElementById("formDelete").disabled = true;
+        while (iconGroups.children.length > 1) {
+          iconGroups.removeChild(iconGroups.lastChild);
+        }
+      })
+      .catch(error => console.error('Error:', error));
+    return false;
+  }
+
+  function onDelete(e) {
+    e.preventDefault();
+    const formData = new FormData(document.getElementById("iconsForm"));
+    const iconsData = [];
+
+    const categories = formData.getAll('category');
+    const svgs = formData.getAll('svg');
+
+    for (let i = 0; i < categories.length; i++) {
+      iconsData.push({
+        category: categories[i],
+        asset: svgs[i]
+      });
+    }
+    console.log('Icons data:', iconsData);
+    fetch('/deleteFromDB', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({icons: iconsData})
+    })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Success:', data);
+        document.getElementById('iconsForm').reset();
+        document.getElementById("formDelete").disabled = true;
+        const iconGroups = document.getElementById('iconGroups');
+        while (iconGroups.children.length > 1) {
+          iconGroups.removeChild(iconGroups.lastChild);
+        }
+      })
+      .catch(error => console.error('Error:', error));
+    return false;
+  }
+</body>
+</html>
